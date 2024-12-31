@@ -20,18 +20,48 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            try
+            {
+                return await _context.Users.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error : {ex.Message}");
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            try
             {
-                return NotFound();
+                var user = await _context.Users.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return user;
             }
-            return user;
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error : {ex.Message}");
+            }
         }
+
+        [HttpPost]
+        public async Task<ActionResult<User>> CreateUser([FromBody] User user)
+        {
+            try
+            {
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error : {ex.Message}");
+            }
+        }
+
     }
 }
