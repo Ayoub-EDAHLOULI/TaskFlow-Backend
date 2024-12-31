@@ -10,8 +10,8 @@ namespace backend.Models
         public string Description { get; set; }
         public bool IsComplete { get; set; }
         public bool IsImportant { get; set; }
-        public DateTime DueDate { get; set; }
+        public DateOnly DueDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         public int UserId { get; set; }
-        public User User { get; set; }
+        public User? User { get; set; } // Make User property nullable
     }
 }
