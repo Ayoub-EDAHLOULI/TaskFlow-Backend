@@ -30,6 +30,13 @@ namespace backend.Controllers
         {
             try
             {
+                // Check if username and password has values
+                if(string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
+                {
+                    return BadRequest(new { message = "Username and password are required." });
+                }
+
+
                 // Check if the user already exists
                 var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == user.Username);
                 if (existingUser != null)
@@ -56,6 +63,12 @@ namespace backend.Controllers
         {
             try
             {
+                // Check if username and password has values
+                if (string.IsNullOrEmpty(loginRequest.Username) || string.IsNullOrEmpty(loginRequest.Password))
+                {
+                    return BadRequest(new { message = "Username and password are required." });
+                }
+
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == loginRequest.Username);
                 if (user == null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.Password))
                 {
