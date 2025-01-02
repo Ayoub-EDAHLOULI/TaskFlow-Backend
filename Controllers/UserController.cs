@@ -33,16 +33,25 @@ namespace backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
             try
             {
-                var user = await _context.Users.FindAsync(id);
+                var user = await _context.Users
+                    .Where(u => u.Id == id)
+                    .Select(u => new UserDTO
+                    {
+                        Id = u.Id,
+                        Username = u.Username,
+                        Role = u.Role
+                    })
+                    .FirstOrDefaultAsync();
+
                 if (user == null)
                 {
                     return NotFound("User not found");
                 }
-                return user;
+                return Ok(user);
             }
             catch (Exception ex)
             {
@@ -50,7 +59,7 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("{id}/tasks")]
+        [HttpGet("tasks/{id}")]
         public async Task<ActionResult<UserDTO>> GetUserAndTasks(int id)
         {
             try

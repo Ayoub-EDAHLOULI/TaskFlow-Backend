@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using backend.Dto;
+
 
 namespace backend.Controllers
 {
@@ -74,6 +69,12 @@ namespace backend.Controllers
                     return BadRequest("User not found");
                 }
 
+                // Check if the title and description exist
+                if (string.IsNullOrEmpty(taskItem.Title) || string.IsNullOrEmpty(taskItem.Description))
+                {
+                    return BadRequest("Title and description are required");
+                }
+
                 _context.TaskItems.Add(taskItem);
                 await _context.SaveChangesAsync();
 
@@ -85,39 +86,51 @@ namespace backend.Controllers
             }
         }
 
-        // PUT: api/TaskItems/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTaskItem(int id, TaskItem taskItem)
+        // PATCH: api/TaskItems/5
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchTaskItem(int id, [FromBody] TaskItemDTO taskItemDto)
         {
-            if (id != taskItem.Id)
-            {
-                return BadRequest("Task ID mismatch.");
-            }
-
-            _context.Entry(taskItem).State = EntityState.Modified;
-
             try
             {
+                var existingTaskItem = await _context.TaskItems.FindAsync(id);
+                if (existingTaskItem == null)
+                {
+                    return NotFound("Task Not Found");
+                }
+
+                // Update only the fields that are provided in the request
+                if (!string.IsNullOrEmpty(taskItemDto.Title))
+                {
+                    existingTaskItem.Title = taskItemDto.Title;
+                }
+                if (!string.IsNullOrEmpty(taskItemDto.Description))
+                {
+                    existingTaskItem.Description = taskItemDto.Description;
+                }
+                if (taskItemDto.IsComplete.HasValue)
+                {
+                    existingTaskItem.IsComplete = taskItemDto.IsComplete.Value;
+                }
+                if (taskItemDto.IsImportant.HasValue)
+                {
+                    existingTaskItem.IsImportant = taskItemDto.IsImportant.Value;
+                }
+                if (taskItemDto.DueDate.HasValue)
+                {
+                    existingTaskItem.DueDate = taskItemDto.DueDate.Value;
+                }
+
+                _context.Entry(existingTaskItem).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TaskItemExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    return StatusCode(500, "Concurrency error occurred while updating the task.");
-                }
+
+                return Ok("Task updated successfully");
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-
-            return Ok("Task updated successfully");
         }
+
 
         // DELETE: api/TaskItems/5
         [HttpDelete("{id}")]
@@ -146,5 +159,6 @@ namespace backend.Controllers
         {
             return _context.TaskItems.Any(e => e.Id == id);
         }
+        
     }
 }
