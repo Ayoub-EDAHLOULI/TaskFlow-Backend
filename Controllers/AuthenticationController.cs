@@ -41,7 +41,7 @@ namespace backend.Controllers
                 var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == user.Username);
                 if (existingUser != null)
                 {
-                    return StatusCode(400, "User already exists");
+                    return BadRequest(new { message = "User already exists." });
                 }
 
                 // Hash password

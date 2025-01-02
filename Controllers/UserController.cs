@@ -48,6 +48,25 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<User>> GetUserAndTasks(int id)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return user;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error : {ex.Message}");
+            }
+        }
+
+
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] User user)
         {
