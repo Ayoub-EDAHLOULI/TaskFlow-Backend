@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace backend.Controllers
 {
@@ -66,19 +67,21 @@ namespace backend.Controllers
         {
             try
             {
-                // Check if the UserId exists in the User table
-                var user = await _context.Users.FindAsync(taskItem.UserId);
+                // Extract UserId from the JWT Token
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if(user == null)
+                if (string.IsNullOrEmpty(userId))
                 {
-                    return BadRequest("User not found");
+                    return Unauthorized("Invalid token or user not authenticated.");
                 }
 
+                // Assign UserId from token to TaskItem
+                taskItem.UserId = int.Parse(userId);
 
                 _context.TaskItems.Add(taskItem);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction("GetTaskItem", new { id = taskItem.Id }, taskItem);
+                return Ok("Task Created Successfully");
             }
             catch (Exception ex)
             {
