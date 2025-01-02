@@ -12,7 +12,6 @@ using System.Security.Claims;
 
 namespace backend.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TaskItemsController : ControllerBase
@@ -61,22 +60,19 @@ namespace backend.Controllers
         }
 
         // POST: api/TaskItems
-        
+
         [HttpPost]
         public async Task<ActionResult<TaskItem>> PostTaskItem([FromBody] TaskItem taskItem)
         {
             try
             {
-                // Extract UserId from the JWT Token
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                // Check if the UserId exists in the User table
+                var user = await _context.Users.FindAsync(taskItem.UserId);
 
-                if (string.IsNullOrEmpty(userId))
+                if (user == null)
                 {
-                    return Unauthorized("Invalid token or user not authenticated.");
+                    return BadRequest("User not found");
                 }
-
-                // Assign UserId from token to TaskItem
-                taskItem.UserId = int.Parse(userId);
 
                 _context.TaskItems.Add(taskItem);
                 await _context.SaveChangesAsync();

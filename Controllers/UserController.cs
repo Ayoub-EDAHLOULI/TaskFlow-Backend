@@ -1,4 +1,5 @@
 ﻿using backend.Data;
+using backend.Dto;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -7,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
-    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -51,7 +51,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("{id}/tasks")]
-        public async Task<ActionResult<User>> GetUserAndTasks(int id)
+        public async Task<ActionResult<UserDTO>> GetUserAndTasks(int id)
         {
             try
             {
@@ -63,7 +63,27 @@ namespace backend.Controllers
                 {
                     return NotFound("User not found");
                 }
-                return user;
+
+                // Map User to UserDTO
+                var userDTO = new UserDTO
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Role = user.Role,
+                    Tasks = user.Tasks?.Select(t => new TaskItemDTO
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        DueDate = t.DueDate,
+                        IsComplete = t.IsComplete,
+                        IsImportant = t.IsImportant,
+                        UserId = t.UserId
+                    }).ToList()
+                };
+
+                return Ok(userDTO);
+
             }
             catch (Exception ex)
             {
@@ -71,6 +91,7 @@ namespace backend.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] User user)
         {
@@ -86,6 +107,7 @@ namespace backend.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
         {
@@ -114,6 +136,7 @@ namespace backend.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
