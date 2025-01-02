@@ -31,7 +31,7 @@ namespace backend.Controllers
             try
             {
                 // Check if username and password has values
-                if(string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
+                if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
                 {
                     return BadRequest(new { message = "Username and password are required." });
                 }

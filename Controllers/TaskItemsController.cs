@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TaskItemsController : ControllerBase
@@ -58,6 +60,7 @@ namespace backend.Controllers
         }
 
         // POST: api/TaskItems
+        
         [HttpPost]
         public async Task<ActionResult<TaskItem>> PostTaskItem([FromBody] TaskItem taskItem)
         {

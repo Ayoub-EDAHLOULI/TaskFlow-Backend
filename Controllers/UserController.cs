@@ -1,11 +1,13 @@
 ﻿using backend.Data;
 using backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -38,7 +40,7 @@ namespace backend.Controllers
                 var user = await _context.Users.FindAsync(id);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound("User not found");
                 }
                 return user;
             }
@@ -48,24 +50,26 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}/tasks")]
         public async Task<ActionResult<User>> GetUserAndTasks(int id)
         {
             try
             {
-                var user = await _context.Users.FindAsync(id);
+                var user = await _context.Users
+                    .Include(u => u.Tasks)
+                    .FirstOrDefaultAsync(u => u.Id == id);
+
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound("User not found");
                 }
                 return user;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error : {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
 
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] User user)

@@ -19,7 +19,7 @@ namespace backend.Models
         public Role Role { get; set; } = Role.User;
 
         // Navigation properties
-        public ICollection<TaskItem> Tasks { get; set; }
+        public ICollection<TaskItem>? Tasks { get; set; }
 
 
     }
